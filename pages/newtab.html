@@ -1,0 +1,1396 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <script src="../scripts/newtab-boot.js"></script>
+    <title>greentab</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%234e9e62'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f0e9db;
+        --surf: #e5dccf;
+        --bdr: #c8bfb0;
+        --text: #16120c;
+        --muted: #5c5448;
+        --dim: #9c9080;
+        --accent: #246030;
+        --a2: #1a4824;
+        --a-bg: #d2e8d6;
+        --amber: #7a5800;
+        --am-bg: #eedcac;
+        --red: #b91c1c;
+        --rb: #eed8d2;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1c1a18;
+          --surf: #252320;
+          --bdr: #383430;
+          --text: #ede9e0;
+          --muted: #a89880;
+          --dim: #686058;
+          --accent: #4e9e62;
+          --a2: #3c7a4c;
+          --a-bg: #0e2014;
+          --amber: #c8a040;
+          --am-bg: #241e08;
+          --red: #c46050;
+          --rb: #240e08;
+        }
+      }
+      html.dark {
+        --bg: #1c1a18;
+        --surf: #252320;
+        --bdr: #383430;
+        --text: #ede9e0;
+        --muted: #a89880;
+        --dim: #686058;
+        --accent: #4e9e62;
+        --a2: #3c7a4c;
+        --a-bg: #0e2014;
+        --amber: #c8a040;
+        --am-bg: #241e08;
+        --red: #c46050;
+        --rb: #240e08;
+      }
+      html.light {
+        --bg: #f0e9db;
+        --surf: #e5dccf;
+        --bdr: #c8bfb0;
+        --text: #16120c;
+        --muted: #5c5448;
+        --dim: #9c9080;
+        --accent: #246030;
+        --a2: #1a4824;
+        --a-bg: #d2e8d6;
+        --amber: #7a5800;
+        --am-bg: #eedcac;
+        --red: #b91c1c;
+        --rb: #eed8d2;
+      }
+      html.black {
+        --bg: #000000;
+        --surf: #0e0e0e;
+        --bdr: #1e1e1e;
+        --text: #ede9e0;
+        --muted: #a89880;
+        --dim: #525048;
+        --accent: #4e9e62;
+        --a2: #3c7a4c;
+        --a-bg: #071209;
+        --amber: #c8a040;
+        --am-bg: #181200;
+        --red: #c46050;
+        --rb: #180800;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Fraunces", Georgia, serif;
+        overflow: hidden;
+      }
+      body.gt-loading {
+        opacity: 0;
+        pointer-events: none;
+      }
+      body {
+        display: flex;
+        height: 100vh;
+        transition: opacity 0.12s ease-out;
+      }
+      .stats-pane {
+        --sidebar-w: min(280px, 24vw);
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: var(--sidebar-w);
+        padding: 1.5rem 1.2rem;
+        overflow-y: auto;
+        z-index: 1;
+        transition: transform 0.2s ease;
+      }
+      .stats-pane.collapsed,
+      html[data-sidebar-collapsed="1"] .stats-pane {
+        transform: translateX(-100%);
+      }
+      .stats-pane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        padding-right: 32px;
+      }
+      .sidebar-toggle {
+        position: fixed;
+        top: calc(1.5rem - 10px);
+        left: 0;
+        width: 24px;
+        height: 36px;
+        padding: 0;
+        border: none;
+        border-radius: 0 8px 8px 0;
+        background: var(--surf);
+        border: 1px solid var(--bdr);
+        border-left: none;
+        cursor: pointer;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        transition:
+          left 0.2s ease,
+          width 0.2s ease,
+          height 0.2s ease,
+          background 0.2s ease,
+          border 0.2s ease;
+      }
+      .sidebar-toggle:hover {
+        color: var(--accent);
+      }
+      .sidebar-toggle .chevron-expand,
+      .sidebar-toggle .chevron-collapse {
+        line-height: 1;
+        font-size: 14px;
+      }
+      .stats-pane:not(.collapsed) + .sidebar-toggle,
+      html:not([data-sidebar-collapsed="1"]) .stats-pane + .sidebar-toggle {
+        left: calc(min(280px, 24vw) - 28px - 0.9rem);
+        width: 28px;
+        height: 28px;
+        background: transparent;
+        border: none;
+      }
+      .stats-pane.collapsed + .sidebar-toggle,
+      html[data-sidebar-collapsed="1"] .sidebar-toggle {
+        left: 0;
+      }
+      .stats-pane.collapsed + .sidebar-toggle .chevron-expand,
+      html[data-sidebar-collapsed="1"] .sidebar-toggle .chevron-expand {
+        display: block;
+      }
+      .stats-pane.collapsed + .sidebar-toggle .chevron-collapse,
+      html[data-sidebar-collapsed="1"] .sidebar-toggle .chevron-collapse {
+        display: none;
+      }
+      .stats-pane:not(.collapsed) + .sidebar-toggle .chevron-expand,
+      html:not([data-sidebar-collapsed="1"]) .sidebar-toggle .chevron-expand {
+        display: none;
+      }
+      .stats-pane:not(.collapsed) + .sidebar-toggle .chevron-collapse,
+      html:not([data-sidebar-collapsed="1"]) .sidebar-toggle .chevron-collapse {
+        display: block;
+      }
+      .stats-pane-title {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--dim);
+        margin: 0;
+      }
+      .stats-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .stats-table td {
+        padding: 6px 0;
+        vertical-align: baseline;
+      }
+      .stats-table td:nth-child(1) {
+        text-align: left;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .stats-table td:nth-child(2) {
+        text-align: right;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text);
+        font-variant-numeric: tabular-nums;
+        padding-left: 1rem;
+        padding-right: 0.4rem;
+      }
+      .open-tabs-section {
+        margin-top: 1.5rem;
+      }
+      .open-tabs-title {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--dim);
+        margin-bottom: 0.75rem;
+      }
+      .tab-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 0;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .tab-row .tab-title-wrap {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .tab-row .tab-current-pill {
+        flex-shrink: 0;
+        padding: 2px 6px;
+        font-size: 9px;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 500;
+        color: var(--bg);
+        background: var(--accent);
+        border-radius: 10px;
+      }
+      .tab-row .tab-name {
+        min-width: 0;
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tab-row .tab-time.tab-time-old {
+        color: var(--red);
+      }
+      .tab-row .tab-time {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        color: var(--dim);
+        flex-shrink: 0;
+      }
+      .tab-row .tab-close {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: var(--dim);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .tab-row .tab-close:hover {
+        color: var(--red);
+        background: var(--rb);
+      }
+      .tab-close-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .tab-suggest-pill {
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--red);
+        color: var(--bg);
+        font-size: 9px;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+      }
+      .tab-suggest-pill:hover {
+        filter: brightness(1.15);
+      }
+      .tab-keep-btn {
+        flex-shrink: 0;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        color: var(--accent);
+        border-radius: 999px;
+        font-size: 9px;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .tab-keep-btn:hover {
+        color: var(--a2);
+        background: var(--a-bg);
+      }
+      .open-tabs-list {
+        max-height: 500px;
+        overflow-y: auto;
+      }
+      .open-tabs-actions {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .open-tabs-btn {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--bdr);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+      .open-tabs-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .open-tabs-btn.has-suggestions {
+        border-color: var(--red);
+        color: var(--red);
+      }
+      .open-tabs-btn.has-suggestions:hover {
+        border-color: var(--red);
+        color: var(--red);
+        background: var(--rb);
+      }
+      .open-tabs-btn.no-suggestions {
+        display: none;
+      }
+      .main-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        width: 100%;
+      }
+      .page {
+        width: min(680px, 100% - 4rem);
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+
+      /* topbar */
+      .topbar {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 2.4rem;
+      }
+      .topbar-alert {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        background: var(--red);
+        color: var(--bg);
+        animation: alert-pulse 2s ease-in-out infinite;
+        cursor: pointer;
+      }
+      .topbar-alert:hover {
+        filter: brightness(1.1);
+      }
+      .topbar-alert.hidden {
+        display: none;
+      }
+      @keyframes alert-pulse {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .logo-dot.perf-green {
+        background: var(--accent);
+      }
+      .logo-dot.perf-amber {
+        background: var(--amber);
+      }
+      .logo-dot.perf-red {
+        background: var(--red);
+      }
+      .logo {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.2em;
+        color: var(--accent);
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .logo-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        animation: pulse 4s ease-in-out infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.2;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+      .clock {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 15px;
+        color: var(--muted);
+        letter-spacing: 0.05em;
+      }
+
+      /* greeting */
+      .greeting {
+        font-size: 64px;
+        font-weight: 300;
+        letter-spacing: -0.03em;
+        color: var(--text);
+        line-height: 1;
+        font-style: italic;
+        margin-bottom: 2.2rem;
+        white-space: nowrap;
+      }
+      .greeting em {
+        font-style: normal;
+        color: var(--accent);
+      }
+
+      /* web search */
+      .search-wrap {
+        position: relative;
+        margin-bottom: 0.5rem;
+      }
+      .search-input {
+        width: 100%;
+        background: var(--surf);
+        border: 1.5px solid var(--bdr);
+        border-radius: 999px;
+        padding: 17px 70px 17px 28px;
+        font-family: "Fraunces", serif;
+        font-size: 19px;
+        font-weight: 300;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.18s;
+        caret-color: var(--accent);
+      }
+      .search-input::placeholder {
+        color: var(--dim);
+        font-style: italic;
+      }
+      .search-input:focus {
+        border-color: var(--accent);
+      }
+      .search-btn {
+        position: absolute;
+        right: 9px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: var(--accent);
+        border: none;
+        border-radius: 50%;
+        width: 46px;
+        height: 46px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+      }
+      .search-btn:hover {
+        background: var(--a2);
+      }
+      .search-btn:active {
+        transform: translateY(-50%) scale(0.91);
+      }
+      .search-hint {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        color: var(--dim);
+        text-align: center;
+        letter-spacing: 0.04em;
+      }
+
+      /* divider */
+      .rule {
+        height: 1px;
+        background: var(--bdr);
+        opacity: 0.4;
+        margin: 1.8rem 0;
+      }
+
+      /* bottom */
+      .bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 2rem;
+      }
+      .co2-hero {
+        cursor: default;
+        user-select: none;
+        flex-shrink: 0;
+        margin-left: 1.2rem;
+      }
+      .co2-big {
+        font-size: 58px;
+        font-weight: 300;
+        letter-spacing: -0.03em;
+        color: var(--accent);
+        line-height: 1;
+        font-style: italic;
+        white-space: nowrap;
+      }
+      .co2-unit {
+        font-size: 22px;
+        font-weight: 300;
+        color: var(--muted);
+        font-style: normal;
+        margin-left: 4px;
+      }
+      .co2-sub {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+        color: var(--dim);
+        letter-spacing: 0.05em;
+        margin-top: 5px;
+        white-space: nowrap;
+      }
+      .rings {
+        display: flex;
+        align-items: flex-start;
+        gap: 2rem;
+        flex-shrink: 0;
+      }
+      .ring-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        width: 90px;
+      }
+      .ring-col-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--dim);
+        text-align: center;
+        line-height: 1.4;
+        white-space: nowrap;
+      }
+      .ring-frame {
+        position: relative;
+        width: 76px;
+        height: 76px;
+        flex-shrink: 0;
+      }
+      .ring-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: rotate(-90deg);
+      }
+      .ring-track {
+        fill: none;
+        stroke: var(--bdr);
+        stroke-width: 5;
+      }
+      .ring-fill {
+        fill: none;
+        stroke-width: 5;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1s ease;
+      }
+      .ring-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ring-number {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text);
+        line-height: 1;
+        white-space: nowrap;
+        display: flex;
+        align-items: baseline;
+        gap: 1px;
+      }
+      .ring-unit-sm {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9px;
+        color: var(--muted);
+      }
+      .ring-badge {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        padding: 3px 10px;
+        border-radius: 999px;
+        white-space: nowrap;
+      }
+      .green {
+        background: var(--a-bg);
+        color: var(--a2);
+      }
+      .amber {
+        background: var(--am-bg);
+        color: var(--amber);
+      }
+      .red {
+        background: var(--rb);
+        color: var(--red);
+      }
+      .charge-icon-circle {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.4s;
+      }
+      .charge-icon-circle.green {
+        background: var(--a-bg);
+      }
+      .charge-icon-circle.amber {
+        background: var(--am-bg);
+      }
+      .charge-icon-circle.red {
+        background: var(--rb);
+      }
+      .tip {
+        margin-top: 1.8rem;
+        padding-top: 1.4rem;
+        border-top: 1px solid var(--bdr);
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        justify-content: center;
+        text-align: center;
+      }
+      .tip-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        color: var(--accent);
+        text-transform: uppercase;
+        flex-shrink: 0;
+        padding-top: 2px;
+        white-space: nowrap;
+      }
+      .tip-text {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.7;
+        text-align: center;
+      }
+      .settings-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        color: var(--dim);
+        transition: color 0.15s;
+        border-radius: 6px;
+        position: relative;
+      }
+      .settings-btn:hover {
+        color: var(--accent);
+      }
+      .settings-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.2);
+        z-index: 998;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+      }
+      .settings-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .settings-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: min(320px, 90vw);
+        z-index: 999;
+        background: var(--surf);
+        border-left: 1px solid var(--bdr);
+        padding: 1.5rem 1.2rem;
+        overflow-y: auto;
+        transform: translateX(100%);
+        transition: transform 0.25s ease;
+        box-shadow: -8px 0 24px rgba(0, 0, 0, 0.1);
+      }
+      .settings-panel.open {
+        transform: translateX(0);
+      }
+      .settings-section-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--dim);
+        margin-bottom: 0.5rem;
+      }
+      .theme-options {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .theme-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition:
+          border-color 0.14s,
+          background 0.14s;
+      }
+      .theme-option:hover {
+        border-color: var(--bdr);
+      }
+      .theme-option.selected {
+        border-color: var(--accent);
+        background: var(--a-bg);
+      }
+      .theme-swatch {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 1.5px solid var(--bdr);
+        flex-shrink: 0;
+      }
+      .swatch-light {
+        background: #f0e9db;
+      }
+      .swatch-dark {
+        background: #1c1a18;
+      }
+      .swatch-black {
+        background: #000;
+      }
+      .theme-option-name {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: 0.04em;
+      }
+      .theme-option-desc {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9.5px;
+        color: var(--dim);
+        margin-top: 1px;
+        line-height: 1.4;
+      }
+      .green-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 9px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition:
+          border-color 0.14s,
+          background 0.14s;
+      }
+      .green-toggle:hover {
+        border-color: var(--bdr);
+      }
+      .green-toggle-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--text);
+        letter-spacing: 0.03em;
+      }
+      .green-toggle-desc {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 10px;
+        color: var(--dim);
+        margin-top: 2px;
+        line-height: 1.4;
+      }
+      .green-toggle-switch {
+        width: 40px;
+        height: 22px;
+        border-radius: 11px;
+        background: var(--bdr);
+        position: relative;
+        flex-shrink: 0;
+        transition: background 0.2s;
+      }
+      .green-toggle-switch.on {
+        background: var(--accent);
+      }
+      .green-toggle-switch::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+      .green-toggle-switch.on::after {
+        transform: translateX(18px);
+      }
+
+      /* intro overlay */
+      .intro-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .intro-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .intro-card {
+        background: var(--surf);
+        border: 1px solid var(--bdr);
+        border-radius: 16px;
+        padding: 1.8rem;
+        max-width: 380px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      }
+      .intro-card h2 {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.6rem;
+      }
+      .intro-card p {
+        font-family: "Fraunces", serif;
+        font-size: 15px;
+        color: var(--text);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+      }
+      .intro-card .intro-bullet {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 0.8rem;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .intro-card .intro-bullet .intro-icon {
+        flex-shrink: 0;
+        width: 20px;
+        height: 20px;
+        color: var(--accent);
+      }
+      .intro-card .intro-bullet strong {
+        color: var(--text);
+      }
+      .intro-got-it {
+        width: 100%;
+        margin-top: 1.2rem;
+        padding: 12px 20px;
+        background: var(--accent);
+        border: none;
+        border-radius: 999px;
+        color: var(--bg);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .intro-got-it:hover {
+        background: var(--a2);
+      }
+
+      .stats-table .table-section-header td {
+        padding-top: 1.25rem;
+        padding-bottom: 0.5rem;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      .stats-table .footprint-row td:nth-child(2) {
+        color: var(--red);
+      }
+    </style>
+  </head>
+  <body class="gt-loading">
+    <div class="intro-overlay" id="intro-overlay">
+      <div class="intro-card">
+        <h2>Welcome to GreenTab</h2>
+        <p>browse lighter — less carbon, less waste.</p>
+        <div class="intro-bullet">
+          <span class="intro-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"
+              />
+            </svg>
+          </span>
+          <div>
+            <strong>settings</strong> — top right. ads, tab sleep, lazy images.
+          </div>
+        </div>
+        <div class="intro-bullet">
+          <span class="intro-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 3v18h18" />
+              <path d="M7 14l4-4 4 4 5-9" />
+            </svg>
+          </span>
+          <div>
+            <strong>impact</strong> — left sidebar. CO₂ saved, autoplays
+            stopped, tabs slept.
+          </div>
+        </div>
+        <div class="intro-bullet">
+          <span class="intro-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+            </svg>
+          </span>
+          <div>
+            <strong>footprint</strong> — below impact. AI and heavy sites use
+            water and energy.
+          </div>
+        </div>
+        <div class="intro-bullet">
+          <span class="intro-icon">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </span>
+          <div>
+            <strong>dark mode</strong> on by default for energy savings. try
+            <strong>pure black</strong> in settings for OLED/miniLED — even more
+            savings.
+          </div>
+        </div>
+        <button class="intro-got-it" id="intro-got-it">Got it</button>
+      </div>
+    </div>
+    <aside class="stats-pane" id="stats-pane">
+      <div class="stats-pane-header">
+        <span class="stats-pane-title">impact</span>
+      </div>
+      <table class="stats-table">
+        <tr>
+          <td>ai overviews prevented</td>
+          <td id="f-searches">0</td>
+        </tr>
+        <tr>
+          <td>autoplays stopped</td>
+          <td id="f-autoplay">0</td>
+        </tr>
+        <tr>
+          <td>tabs slept</td>
+          <td id="f-slept">0</td>
+        </tr>
+        <tr>
+          <td>tabs closed via greentab</td>
+          <td id="f-tabs-closed">0</td>
+        </tr>
+        <tr>
+          <td>lazy images loaded</td>
+          <td id="f-images">0</td>
+        </tr>
+        <tr>
+          <td>prefetches removed</td>
+          <td id="f-prefetch">0</td>
+        </tr>
+        <tr>
+          <td>trackers blocked</td>
+          <td id="f-trackers">0</td>
+        </tr>
+        <tr>
+          <td>ads blocked</td>
+          <td id="f-ads">0</td>
+        </tr>
+        <tr class="table-section-header">
+          <td colspan="2">footprint</td>
+        </tr>
+        <tr class="footprint-row">
+          <td>ai chats opened</td>
+          <td id="f-ai-visits">0</td>
+        </tr>
+        <tr class="footprint-row">
+          <td>water bottles wasted</td>
+          <td id="f-bottles">0</td>
+        </tr>
+        <tr class="footprint-row">
+          <td>co2 added (g)</td>
+          <td id="f-co2-added">0</td>
+        </tr>
+      </table>
+      <div class="open-tabs-section">
+        <div class="open-tabs-title">open tabs</div>
+        <div class="open-tabs-list" id="open-tabs-list"></div>
+        <div class="open-tabs-actions">
+          <button class="open-tabs-btn no-suggestions" id="btn-clear-idle">
+            clear suggested
+          </button>
+        </div>
+      </div>
+    </aside>
+    <button
+      class="sidebar-toggle"
+      id="sidebar-toggle"
+      aria-label="Toggle sidebar"
+    >
+      <span class="chevron-expand" aria-hidden="true">›</span>
+      <span class="chevron-collapse" aria-hidden="true">‹</span>
+    </button>
+
+    <div class="main-wrap">
+      <div class="page">
+        <div class="topbar">
+          <div class="logo">
+            <div class="logo-dot perf-green" id="logo-dot"></div>
+            GreenTab
+          </div>
+          <div
+            class="topbar-alert hidden"
+            id="topbar-alert"
+            aria-live="polite"
+          ></div>
+          <div style="display: flex; align-items: center; gap: 14px">
+            <div class="clock" id="clock">--:-- --</div>
+            <div style="position: relative">
+              <button
+                id="settings-btn"
+                aria-label="Settings"
+                class="settings-btn"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"
+                  />
+                </svg>
+              </button>
+              <div class="settings-overlay" id="settings-overlay"></div>
+              <div class="settings-panel" id="settings-panel">
+                <div
+                  class="settings-section-label"
+                  style="margin-bottom: 1rem; text-align: center"
+                >
+                  Settings
+                </div>
+                <div style="margin-bottom: 1.5rem">
+                  <div class="settings-section-label">Appearance</div>
+                  <div class="theme-options">
+                    <div class="theme-option" id="opt-light" data-theme="light">
+                      <div class="theme-swatch swatch-light"></div>
+                      <div>
+                        <div class="theme-option-name">Light</div>
+                        <div class="theme-option-desc">
+                          Warm beige — easy on the eyes
+                        </div>
+                      </div>
+                    </div>
+                    <div class="theme-option" id="opt-dark" data-theme="dark">
+                      <div class="theme-swatch swatch-dark"></div>
+                      <div>
+                        <div class="theme-option-name">Dark</div>
+                        <div class="theme-option-desc">
+                          Warm dark gray — balanced contrast
+                        </div>
+                      </div>
+                    </div>
+                    <div class="theme-option" id="opt-black" data-theme="black">
+                      <div class="theme-swatch swatch-black"></div>
+                      <div>
+                        <div class="theme-option-name">Pure Black</div>
+                        <div class="theme-option-desc">
+                          True black — max energy saving on OLED
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div class="settings-section-label">Green features</div>
+                  <div
+                    id="green-toggles"
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      gap: 6px;
+                      margin-top: 0.5rem;
+                    "
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="greeting"><em id="tod">Good morning</em></div>
+
+        <div id="web-pane">
+          <div class="search-wrap">
+            <input
+              class="search-input"
+              id="search"
+              placeholder="search the web…"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="search-btn" id="search-btn">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle
+                  cx="7.5"
+                  cy="7.5"
+                  r="5"
+                  stroke="#fff"
+                  stroke-width="2.2"
+                />
+                <line
+                  x1="11.5"
+                  y1="11.5"
+                  x2="17"
+                  y2="17"
+                  stroke="#fff"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="search-hint">
+            ai overviews disabled — pure web results only
+          </div>
+        </div>
+
+        <div class="rule"></div>
+
+        <div class="bottom">
+          <div class="co2-hero">
+            <div class="co2-big" id="hero-num">
+              0<span class="co2-unit">g CO&#x2082;</span>
+            </div>
+            <div class="co2-sub">saved with greentab</div>
+          </div>
+          <div class="rings">
+            <div class="ring-col">
+              <div class="ring-col-label">Chrome use</div>
+              <div class="ring-frame">
+                <svg
+                  class="ring-svg"
+                  width="76"
+                  height="76"
+                  viewBox="0 0 76 76"
+                >
+                  <circle class="ring-track" cx="38" cy="38" r="32" />
+                  <circle
+                    class="ring-fill"
+                    id="ring-renew"
+                    cx="38"
+                    cy="38"
+                    r="32"
+                    stroke="#246030"
+                    stroke-dasharray="201.1"
+                    stroke-dashoffset="201.1"
+                  />
+                </svg>
+                <div class="ring-center">
+                  <div class="ring-number">
+                    <span id="renew-num">—</span
+                    ><span class="ring-unit-sm">W</span>
+                  </div>
+                </div>
+              </div>
+              <span class="ring-badge green" id="renew-badge">est.</span>
+            </div>
+            <div class="ring-col">
+              <div class="ring-col-label">Carbon impact</div>
+              <div class="ring-frame">
+                <svg
+                  class="ring-svg"
+                  width="76"
+                  height="76"
+                  viewBox="0 0 76 76"
+                >
+                  <circle class="ring-track" cx="38" cy="38" r="32" />
+                  <circle
+                    class="ring-fill"
+                    id="ring-temp"
+                    cx="38"
+                    cy="38"
+                    r="32"
+                    stroke="#c46050"
+                    stroke-dasharray="201.1"
+                    stroke-dashoffset="201.1"
+                  />
+                </svg>
+                <div class="ring-center">
+                  <div class="ring-number">
+                    <span id="temp-num">—</span
+                    ><span class="ring-unit-sm">g/h</span>
+                  </div>
+                </div>
+              </div>
+              <span class="ring-badge amber" id="temp-badge">—</span>
+            </div>
+            <div class="ring-col">
+              <div class="ring-col-label">RENEWABLES</div>
+              <div class="ring-frame">
+                <svg
+                  class="ring-svg"
+                  width="76"
+                  height="76"
+                  viewBox="0 0 76 76"
+                >
+                  <circle class="ring-track" cx="38" cy="38" r="32" />
+                  <circle
+                    class="ring-fill"
+                    id="ring-grid"
+                    cx="38"
+                    cy="38"
+                    r="32"
+                    stroke="#246030"
+                    stroke-dasharray="201.1"
+                    stroke-dashoffset="201.1"
+                  />
+                </svg>
+                <div class="ring-center">
+                  <div class="ring-number">
+                    <span id="grid-num">—</span
+                    ><span class="ring-unit-sm">%</span>
+                  </div>
+                </div>
+              </div>
+              <span class="ring-badge green" id="charge-badge">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tip">
+          <span class="tip-label">tip</span>
+          <span class="tip-text" id="tip-body">loading…</span>
+        </div>
+      </div>
+    </div>
+    <script src="../scripts/newtab.js"></script>
+  </body>
+</html>

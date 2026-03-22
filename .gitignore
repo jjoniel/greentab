@@ -1,0 +1,12 @@
+# Chrome extension build artifacts
+_metadata/
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+*.swo

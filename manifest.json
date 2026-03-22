@@ -1,0 +1,80 @@
+{
+  "manifest_version": 3,
+  "name": "GreenTab",
+  "version": "1.4.0",
+  "description": "Passive carbon reduction \u2014 AI-free search, ad blocking, autoplay off, tab sleeping, lazy images, and a live footprint tracker.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "system.cpu",
+    "webNavigation",
+    "alarms",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "https://www.google.com/*",
+    "https://www.youtube.com/*",
+    "https://api.electricitymaps.com/*",
+    "*://*/*"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "adblock",
+        "enabled": true,
+        "path": "rules/adblock.json"
+      },
+      {
+        "id": "trackers",
+        "enabled": true,
+        "path": "rules/trackers.json"
+      }
+    ]
+  },
+  "chrome_url_overrides": {
+    "newtab": "pages/newtab.html"
+  },
+  "background": {
+    "service_worker": "scripts/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*"
+      ],
+      "js": [
+        "scripts/youtube.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "scripts/passive.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "scripts/adblock.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": "icons/icon48.png",
+    "default_title": "GreenTab"
+  }
+}

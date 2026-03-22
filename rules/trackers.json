@@ -1,0 +1,13 @@
+[
+  { "id":1, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||scorecardresearch.com^",    "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":2, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||quantserve.com^",           "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":3, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||omtrdc.net^",               "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":4, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||demdex.net^",               "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":5, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||liveramp.com^",             "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":6, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||liveramp.net^",             "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":7, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||rlcdn.com^",                "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":8, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||bidswitch.net^",            "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":9, "priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||bluekai.com^",              "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":10,"priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||krux.com^",                 "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} },
+  { "id":11,"priority":1, "action":{"type":"block"}, "condition":{"urlFilter":"||turn.com^",                 "resourceTypes":["script","image","xmlhttprequest","sub_frame","media"]} }
+]

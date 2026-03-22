@@ -139,9 +139,12 @@
 
   onNavigate();
 
-  new MutationObserver(function() {
-    if (location.href !== lastUrl) onNavigate();
-  }).observe(document.querySelector('title') || document.head, {
-    childList: true, subtree: true, characterData: true
-  });
+  var obsTarget = document.querySelector('title') || document.head || document.documentElement;
+  if (obsTarget && obsTarget.nodeType === 1) {
+    new MutationObserver(function() {
+      if (location.href !== lastUrl) onNavigate();
+    }).observe(obsTarget, {
+      childList: true, subtree: true, characterData: true
+    });
+  }
 })();
